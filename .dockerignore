@@ -1,0 +1,14 @@
+.git
+.idea
+vendor
+node_modules
+storage/logs/*
+storage/api-docs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.yml
+Dockerfile
