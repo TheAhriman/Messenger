@@ -51,8 +51,19 @@ services:
   worker-high:
     <<: *app-service
     # Выделенный консьюмер: транзакционный трафик никогда не ждёт маркетинговый.
+    # Масштабируется горизонтально при всплеске критичного трафика:
+    #   docker compose up -d --scale worker-high=N
     command: php artisan queue:work rabbitmq --queue=notifications_high --sleep=1 --max-time=3600
     environment: *app-environment
+    deploy:
+      resources:
+        # Критичному трафику резервируем ресурсы, чтобы маркетинг их не отнял.
+        reservations:
+          cpus: "1.0"
+          memory: 256M
+        limits:
+          cpus: "2.0"
+          memory: 512M
     depends_on:
       app:
         condition: service_started
@@ -61,6 +72,12 @@ services:
     <<: *app-service
     command: php artisan queue:work rabbitmq --queue=notifications_low --sleep=1 --max-time=3600
     environment: *app-environment
+    deploy:
+      resources:
+        # Маркетинг ограничен сверху — не может задавить хост и забрать CPU у high.
+        limits:
+          cpus: "1.0"
+          memory: 384M
     depends_on:
       app:
         condition: service_started
